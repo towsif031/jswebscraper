@@ -5,23 +5,25 @@ async function scrapeData(url) {
 	const page = await browser.newPage();
 	await page.goto(url);
 
-	/* img */
-	const [el1] = await page.$x('//*[@id="landingImage"]');
-	const imgSrc = await el1.getProperty('src');
-	const img = await imgSrc.jsonValue();
+	/* scrape table data */
+	const tableData = await page.evaluate(() => {
+		const rows = document.querySelectorAll(
+			'#productDetails_techSpec_section_1 tr'
+		);
 
-	/* title */
-	const [el2] = await page.$x('//*[@id="productTitle"]');
-	const titleText = await el2.getProperty('textContent');
-	const rawTitle = await titleText.jsonValue();
-	const title = rawTitle.replace(/\r?\n|\r/g, '');
+		let rowData = {};
+		rows.forEach((row) => {
+			const th = row.querySelector('th');
+			const td = row.querySelector('td');
 
-	/* price */
-	const [el3] = await page.$x('//*[@id="priceblock_ourprice"]');
-	const priceTxt = await el3.getProperty('textContent');
-	const price = await priceTxt.jsonValue();
+			const key = th.innerText.replace(/\s+/g, '_').toLowerCase();
+			rowData[key] = td.innerText;
+		});
 
-	console.log({ img, title, price });
+		return rowData;
+	});
+
+	console.log(tableData);
 
 	await browser.close();
 }
