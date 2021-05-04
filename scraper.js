@@ -7,17 +7,32 @@ async function scrapeData(url) {
 
 	/* scrape table data */
 	const tableData = await page.evaluate(() => {
-		const rows = document.querySelectorAll(
-			'#productDetails_techSpec_section_1 tr'
-		);
+		const rows = document.querySelectorAll('table tr');
 
 		let rowData = {};
+		let lastTh = '';
+
 		rows.forEach((row) => {
 			const th = row.querySelector('th');
 			const td = row.querySelector('td');
 
-			const key = th.innerText.replace(/\s+/g, '_').toLowerCase();
-			rowData[key] = td.innerText;
+			if (th && td) {
+				const key = th.innerText;
+				rowData[key] = td.innerText;
+			} else if (th && !td) {
+				if (th.innerText === '付属品名') {
+					lastTh = '付属品名';
+					rowData[lastTh] = [];
+				} else if (th.innerText === '付属ソフト名') {
+					lastTh = '付属ソフト名';
+					rowData[lastTh] = [];
+				} else {
+					const key = th.innerText;
+					rowData[key] = '';
+				}
+			} else if (!th && td) {
+				rowData[lastTh].push(td.innerText);
+			}
 		});
 
 		return rowData;
@@ -29,5 +44,9 @@ async function scrapeData(url) {
 }
 
 scrapeData(
-	'https://www.amazon.com/Razer-Huntsman-Elite-Opto-Mechanical-Multi-Functional/dp/B07DHNX18W/'
+	'https://www.inversenet.co.jp/pclist/product/ASUS/X75VD%252DTY096V.html'
 );
+
+// scrapeData(
+// 	'https://www.inversenet.co.jp/pclist/product/CASIO/MPC%252D225BL.html'
+// );
