@@ -12,18 +12,19 @@ async function scrapeData(url) {
 
 		let rowData = {};
 
-		let lastThInnerText = '';
+		/* make identical 'th's an array */
+		let lastHeadTxt1 = '';
 		ths.forEach((th) => {
 			const innTxt = th.innerText;
-			if (lastThInnerText === innTxt && !Array.isArray(rowData[innTxt])) {
+			if (lastHeadTxt1 === innTxt && !Array.isArray(rowData[innTxt])) {
 				rowData[innTxt] = [];
 			}
 
-			lastThInnerText = innTxt;
+			lastHeadTxt1 = innTxt;
 		});
 
-		let lastTh = '';
-
+		/* get key value pairs */
+		let lastHeadTxt2 = '';
 		rows.forEach((row) => {
 			const th = row.querySelector('th');
 			const td = row.querySelector('td');
@@ -38,17 +39,24 @@ async function scrapeData(url) {
 				}
 			} else if (th && !td) {
 				if (th.innerText === '付属品名') {
-					lastTh = '付属品名';
-					rowData[lastTh] = [];
+					lastHeadTxt2 = '付属品名';
+					rowData[lastHeadTxt2] = [];
 				} else if (th.innerText === '付属ソフト名') {
-					lastTh = '付属ソフト名';
-					rowData[lastTh] = [];
+					lastHeadTxt2 = '付属ソフト名';
+					rowData[lastHeadTxt2] = [];
 				} else {
 					const key = th.innerText;
 					rowData[key] = '';
 				}
 			} else if (!th && td) {
-				rowData[lastTh].push(td.innerText);
+				rowData[lastHeadTxt2].push(td.innerText);
+			}
+		});
+
+		/* get left-out 'th's of a row */
+		ths.forEach((th) => {
+			if (!(th.innerText in rowData)) {
+				rowData[th.innerText] = '';
 			}
 		});
 
@@ -61,9 +69,5 @@ async function scrapeData(url) {
 }
 
 scrapeData(
-	'https://www.inversenet.co.jp/pclist/product/ASUS/X75VD%252DTY096V.html'
+	'https://www.inversenet.co.jp/pclist/product/CASIO/MPC%252D225BL.html'
 );
-
-// scrapeData(
-// 	'https://www.inversenet.co.jp/pclist/product/CASIO/MPC%252D225BL.html'
-// );
