@@ -8,8 +8,20 @@ async function scrapeData(url) {
 	/* scrape table data */
 	const tableData = await page.evaluate(() => {
 		const rows = document.querySelectorAll('table tr');
+		const ths = document.querySelectorAll('table tr th');
 
 		let rowData = {};
+
+		let lastThInnerText = '';
+		ths.forEach((th) => {
+			const innTxt = th.innerText;
+			if (lastThInnerText === innTxt && !Array.isArray(rowData[innTxt])) {
+				rowData[innTxt] = [];
+			}
+
+			lastThInnerText = innTxt;
+		});
+
 		let lastTh = '';
 
 		rows.forEach((row) => {
@@ -18,7 +30,12 @@ async function scrapeData(url) {
 
 			if (th && td) {
 				const key = th.innerText;
-				rowData[key] = td.innerText;
+
+				if (Array.isArray(rowData[key])) {
+					rowData[key].push(td.innerText);
+				} else {
+					rowData[key] = td.innerText;
+				}
 			} else if (th && !td) {
 				if (th.innerText === '付属品名') {
 					lastTh = '付属品名';
